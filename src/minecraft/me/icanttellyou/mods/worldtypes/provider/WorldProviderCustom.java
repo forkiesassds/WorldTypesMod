@@ -75,7 +75,7 @@ public class WorldProviderCustom extends WorldProvider {
                 break;
         }
         if (enumWorldTypes[generator] == EnumWorldTypes.ALPHA) {
-            this.worldChunkMgr = new WorldChunkManagerHell(BiomeGenBase.plains, 1, 1);
+            this.worldChunkMgr = new WorldChunkManagerHell(BiomeGenBase.forest, 1, 1);
         }
     }
 
