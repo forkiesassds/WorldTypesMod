@@ -87,8 +87,7 @@ public class WorldProviderCustom extends WorldProvider {
     @Override
     public boolean canCoordinateBeSpawn(int i1, int i2) {
         int i3 = this.worldObj.getFirstUncoveredBlock(i1, i2);
-        return i3 != 0 && (mod_WorldTypes.enumWorldTypes[generator].worldType.equals("default") ? i3 == Block.sand.blockID : i3 == Block.grass.blockID || i3 == Block.sand.blockID);
-    }
+        return i3 != 0 && (mod_WorldTypes.enumWorldTypes[generator].worldType.equals("default") || mod_WorldTypes.enumWorldTypes[generator].worldType.equals("alpha") ? i3 == Block.sand.blockID : i3 == Block.grass.blockID || i3 == Block.sand.blockID);    }
 
     @Override
     public float getCloudHeight() {
