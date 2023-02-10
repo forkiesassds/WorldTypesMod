@@ -1,12 +1,13 @@
 package net.minecraft.src;
 
-import me.icanttellyou.mods.worldtypes.gui.GuiMoreWorldGenSettings;
 import me.icanttellyou.mods.worldtypes.proxy.world.DimensionOverworldProxy;
 import me.icanttellyou.mods.worldtypes.proxy.gui.GuiCreateWorldProxy;
 import me.icanttellyou.mods.worldtypes.proxy.gui.GuiSelectWorldProxy;
 import me.icanttellyou.mods.worldtypes.proxy.world.SaveConverterMcRegionProxy;
 import net.minecraft.client.Minecraft;
 import net.minecraft.src.overrideapi.OverrideAPI;
+import net.minecraft.src.overrideapi.proxy.ArrayListProxy;
+import net.minecraft.src.overrideapi.utils.Reflection;
 import net.minecraft.src.overrideapi.utils.gui.ButtonHandler;
 
 import java.io.File;
@@ -39,7 +40,7 @@ public class mod_WorldTypes extends BaseMod {
             field.setAccessible(true);
             field.set(mc, new SaveConverterMcRegionProxy(new File(Minecraft.getMinecraftDir(), "saves")));
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException("Failed to override save handler!: " + e);
+            throw new RuntimeException("Failed to override save handler!", e);
         }
         OverrideAPI.registerButtonHandler(new InjectWorldCreateScreen());
         OverrideAPI.overrideGuiScreen(GuiSelectWorldProxy.class);
@@ -49,8 +50,17 @@ public class mod_WorldTypes extends BaseMod {
             try {
                 if (f.getType().equals(BiomeGenBase.class)) biomes.add((BiomeGenBase) f.get(BiomeGenBase.class));
             } catch (IllegalAccessException e) {
-                throw new RuntimeException("Unable to get biomes!: " + e);
+                throw new RuntimeException("Unable to get biomes!", e);
             }
+        }
+
+        //try to get biomeapi biomes
+        try {
+            List<BiomeGenBase> biomes = (List<BiomeGenBase>)BiomeGenBase.class.getField("registeredBiomes").get(BiomeGenBase.class);
+            for (BiomeGenBase biome : biomes) {
+                if (!biomes.contains(biome)) biomes.add(biome);
+            }
+        } catch (NoSuchFieldException | IllegalAccessException e) {
         }
     }
 
@@ -80,23 +90,31 @@ public class mod_WorldTypes extends BaseMod {
             if (guiscreen instanceof GuiCreateWorld) {
                 if(guibutton.enabled && guibutton.enabled2) {
                     if (guibutton.id == id) {
-                        generator += 1;
-                        if (generator >= enumWorldTypes.length) generator = 0;
+                        generator = (generator + 1) % enumWorldTypes.length;
                         guibutton.displayString = enumWorldTypes[generator].displayName;
+                        try {
+                            List<GuiButton> controlList = (List<GuiButton>) Reflection.findField(GuiScreen.class, new String[]{"e", "controlList"}).get(OverrideAPI.getMinecraftInstance().currentScreen);
+                            List<GuiButton> proxy = new ArrayListProxy<GuiButton>();
+                            proxy.addAll(controlList);
+                            for (GuiButton button : proxy) {
+                                if (button.id == id2 || button.id == id3) {
+                                    if (enumWorldTypes[generator] == EnumWorldTypes.ALPHA) button.enabled = false;
+                                    else button.enabled = true;
+                                }
+                            }
+                        } catch (IllegalAccessException e) {
+                            throw new RuntimeException("dafuq? failed to get buttons?", e);
+                        }
                     }
 
                     if (guibutton.id == id2) {
-                        biomeGenerator += 1;
-                        if (biomeGenerator >= enumBiomeGenerators.length) biomeGenerator = 0;
+                        biomeGenerator = (biomeGenerator + 1) % enumBiomeGenerators.length;
                         guibutton.displayString = enumBiomeGenerators[biomeGenerator].displayName;
                     }
 
                     if (guibutton.id == id3) {
-                        mc.displayGuiScreen(new GuiMoreWorldGenSettings(guiscreen));
-//                        singleBiome += 1;
-//                        if (singleBiome >= biomes.toArray().length) singleBiome = 0;
-//                        guibutton.displayString = biomes.get(singleBiome).biomeName;
-                        return;
+                        singleBiome = (singleBiome + 1) % biomes.toArray().length;
+                        guibutton.displayString = biomes.get(singleBiome).biomeName;
                     }
                 }
             }
@@ -109,7 +127,7 @@ public class mod_WorldTypes extends BaseMod {
         SKY("sky", "Sky"),
         FLAT("flat", "Flat"),
         TWOD("2d", "2D Perlin"),
-        BIOSPHERES("biospheres", "Biospheres");
+        ALPHA("alpha", "Alpha");
 
         public final String worldType;
         public final String displayName;

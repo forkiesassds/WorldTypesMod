@@ -1,10 +1,9 @@
 package me.icanttellyou.mods.worldtypes.provider;
 
-import me.icanttellyou.mods.worldtypes.terrain.BiospheresTerrainGenerator;
+import me.icanttellyou.mods.worldtypes.terrain.AlphaTerrainGenerator;
 import me.icanttellyou.mods.worldtypes.terrain.FlatTerrainGenerator;
 import me.icanttellyou.mods.worldtypes.terrain.ITerrainGenerator;
 import me.icanttellyou.mods.worldtypes.terrain.TwoDTerrainGenerator;
-import me.icanttellyou.mods.worldtypes.terrain.mapgen.MapGenBiosphereCaves;
 import net.minecraft.src.BiomeGenBase;
 import net.minecraft.src.Chunk;
 import net.minecraft.src.ChunkProviderGenerate;
@@ -25,7 +24,7 @@ import static net.minecraft.src.mod_WorldTypes.generator;
 public class ChunkProviderCustom implements IChunkProvider {
     private final Random rand;
     private final World worldObj;
-    private final MapGenBase field_902_u;
+    private final MapGenBase caveGenerator;
     private BiomeGenBase[] biomesForGeneration;
     //vanilla terrain generators
     public List<IChunkProvider> chunkProviders = new ArrayList<>();
@@ -35,19 +34,16 @@ public class ChunkProviderCustom implements IChunkProvider {
     public ChunkProviderCustom(World world1, long j2) {
         worldObj = world1;
         rand = new Random(j2);
-        switch (mod_WorldTypes.enumWorldTypes[generator].worldType) {
-            default:
-                field_902_u = new MapGenCaves();
-                break;
-            case "biospheres":
-                field_902_u = new MapGenBiosphereCaves();
-                break;
-        }
+//        switch (mod_WorldTypes.enumWorldTypes[generator].worldType) {
+//            default:
+                caveGenerator = new MapGenCaves();
+//                break;
+//        }
         chunkProviders.add(new ChunkProviderSky(world1, j2));
         chunkProviders.add(new ChunkProviderGenerate(world1, j2));
         terrainGenerators.add(new FlatTerrainGenerator(world1, j2));
         terrainGenerators.add(new TwoDTerrainGenerator(world1, j2));
-        terrainGenerators.add(new BiospheresTerrainGenerator(world1, j2));
+        terrainGenerators.add(new AlphaTerrainGenerator(world1, j2));
     }
 
     public void generateTerrain(int i1, int i2, byte[] b3, BiomeGenBase[] biomeGenBase4, double[] d5) {
@@ -60,7 +56,7 @@ public class ChunkProviderCustom implements IChunkProvider {
                 break;
             case "flat":
             case "2d":
-            case "biospheres":
+            case "alpha":
                 terrainGenerators.get(generator - chunkProviders.toArray().length).generateTerrain(i1, i2, b3, biomeGenBase4, d5);
                 break;
         }
@@ -75,7 +71,6 @@ public class ChunkProviderCustom implements IChunkProvider {
                 ((ChunkProviderSky)chunkProviders.get(0)).func_28072_a(i1, i2, b3, biomeGenBase4);
                 break;
             case "flat":
-            case "biospheres":
                 break;
         }
     }
@@ -94,7 +89,7 @@ public class ChunkProviderCustom implements IChunkProvider {
         double[] d5 = this.worldObj.getWorldChunkManager().temperature;
         this.generateTerrain(i1, i2, b3, this.biomesForGeneration, d5);
         this.replaceBlocksForBiome(i1, i2, b3, this.biomesForGeneration);
-        if (!mod_WorldTypes.enumWorldTypes[generator].worldType.equals("flat")) this.field_902_u.func_867_a(this, this.worldObj, i1, i2, b3);
+        if (!mod_WorldTypes.enumWorldTypes[generator].worldType.equals("flat")) this.caveGenerator.func_867_a(this, this.worldObj, i1, i2, b3);
         chunk4.func_1024_c();
         return chunk4;
     }
@@ -111,7 +106,7 @@ public class ChunkProviderCustom implements IChunkProvider {
                 chunkProviders.get(1).populate(iChunkProvider1, i2, i3);
                 break;
             case "flat":
-            case "biospheres":
+            case "alpha":
                 terrainGenerators.get(generator - chunkProviders.toArray().length).populate(iChunkProvider1, i2, i3);
                 break;
         }

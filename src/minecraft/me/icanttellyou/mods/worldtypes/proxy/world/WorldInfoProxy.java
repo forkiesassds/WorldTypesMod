@@ -37,7 +37,7 @@ public class WorldInfoProxy extends WorldInfo {
             method.setAccessible(true);
             return (NBTTagCompound) method.invoke(this, nbtTagCompound, nbtTagCompound2);
         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-            throw new RuntimeException("Failed to invoke updateTagCompound!: " + e);
+            throw new RuntimeException("Failed to invoke updateTagCompound!", e);
         }
     }
 

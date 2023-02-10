@@ -1,12 +1,6 @@
 package me.icanttellyou.mods.worldtypes.provider;
 
-import me.icanttellyou.mods.worldtypes.chunkmanager.WorldChunkManagerBiospheres;
-import net.minecraft.src.BiomeGenBase;
-import net.minecraft.src.Block;
-import net.minecraft.src.IChunkProvider;
-import net.minecraft.src.WorldChunkManagerHell;
-import net.minecraft.src.WorldProvider;
-import net.minecraft.src.mod_WorldTypes;
+import net.minecraft.src.*;
 
 import static net.minecraft.src.mod_WorldTypes.*;
 
@@ -15,14 +9,11 @@ public class WorldProviderCustom extends WorldProvider {
     public void registerWorldChunkManager() {
         switch (enumBiomeGenerators[biomeGenerator].biomeGenerator) {
             default:
-                switch (enumWorldTypes[generator].worldType) {
-                    default:
+//                switch (enumWorldTypes[generator].worldType) {
+//                    default:
                         super.registerWorldChunkManager();
                         break;
-                    case "biospheres":
-                        this.worldChunkMgr = new WorldChunkManagerBiospheres(worldObj);
-                        break;
-                }
+//                }
             case "single":
                 double i = 0.97D;
                 double i2 = 0.45D;
@@ -69,8 +60,22 @@ public class WorldProviderCustom extends WorldProvider {
                     i = 0.5D;
                     i2 = 0.5D;
                 }
+
+                //try to get biomeapi values for max temp and humidity
+                try {
+                    double temp = (double) BiomeGenBase.class.getField("maxTemp").get(singleBiome);
+                    double humid = (double) BiomeGenBase.class.getField("maxHumid").get(singleBiome);
+                    if (temp != Float.MIN_VALUE && humid != Float.MIN_VALUE) {
+                        i = temp;
+                        i2 = humid;
+                    }
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                }
                 this.worldChunkMgr = new WorldChunkManagerHell(mod_WorldTypes.biomes.get(singleBiome), i, i2);
                 break;
+        }
+        if (enumWorldTypes[generator] == EnumWorldTypes.ALPHA) {
+            this.worldChunkMgr = new WorldChunkManagerHell(BiomeGenBase.plains, 1, 1);
         }
     }
 
