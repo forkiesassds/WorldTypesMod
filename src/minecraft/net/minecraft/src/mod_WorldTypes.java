@@ -1,14 +1,16 @@
 package net.minecraft.src;
 
+import me.icanttellyou.mods.worldtypes.proxy.gui.GuiCreateWorldAetherProxy;
+import me.icanttellyou.mods.worldtypes.proxy.gui.GuiSelectWorldAetherProxy;
 import me.icanttellyou.mods.worldtypes.proxy.world.DimensionOverworldProxy;
 import me.icanttellyou.mods.worldtypes.proxy.gui.GuiCreateWorldProxy;
 import me.icanttellyou.mods.worldtypes.proxy.gui.GuiSelectWorldProxy;
 import me.icanttellyou.mods.worldtypes.proxy.world.SaveConverterMcRegionProxy;
 import net.minecraft.client.Minecraft;
-import net.minecraft.src.overrideapi.OverrideAPI;
-import net.minecraft.src.overrideapi.proxy.ArrayListProxy;
-import net.minecraft.src.overrideapi.utils.Reflection;
-import net.minecraft.src.overrideapi.utils.gui.ButtonHandler;
+import overrideapi.OverrideAPI;
+import overrideapi.proxy.ArrayListProxy;
+import overrideapi.utils.Reflection;
+import overrideapi.utils.gui.ButtonHandler;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -45,6 +47,8 @@ public class mod_WorldTypes extends BaseMod {
         OverrideAPI.registerButtonHandler(new InjectWorldCreateScreen());
         OverrideAPI.overrideGuiScreen(GuiSelectWorldProxy.class);
         OverrideAPI.overrideGuiScreen(GuiCreateWorldProxy.class);
+        OverrideAPI.overrideGuiScreen(GuiSelectWorldAetherProxy.class);
+        OverrideAPI.overrideGuiScreen(GuiCreateWorldAetherProxy.class);
         Field[] fields = BiomeGenBase.class.getFields();
         for(Field f : fields) {
             try {
@@ -81,7 +85,11 @@ public class mod_WorldTypes extends BaseMod {
                 customButtons.add(new GuiButton(id = OverrideAPI.getUniqueButtonID(), guiscreen.width / 2 - 100, guiscreen.height / 4 + 96 + 6, 67, 20, enumWorldTypes[generator].displayName));
                 customButtons.add(new GuiButton(id2 = OverrideAPI.getUniqueButtonID(), guiscreen.width / 2 - 100 + 67, guiscreen.height / 4 + 96 + 6, 67, 20, enumBiomeGenerators[biomeGenerator].displayName));
                 customButtons.add(new GuiButton(id3 = OverrideAPI.getUniqueButtonID(), guiscreen.width / 2 - 100 + 134, guiscreen.height / 4 + 96 + 6, 67, 20, biomes.get(singleBiome).biomeName));
-//                customButtons.get(id3).enabled = false;
+                for (GuiButton button : customButtons) {
+                    if (button.id == id3) {
+                        button.enabled = false;
+                    }
+                }
             }
         }
 
@@ -92,19 +100,6 @@ public class mod_WorldTypes extends BaseMod {
                     if (guibutton.id == id) {
                         generator = (generator + 1) % enumWorldTypes.length;
                         guibutton.displayString = enumWorldTypes[generator].displayName;
-                        try {
-                            List<GuiButton> controlList = (List<GuiButton>) Reflection.findField(GuiScreen.class, new String[]{"e", "controlList"}).get(OverrideAPI.getMinecraftInstance().currentScreen);
-                            List<GuiButton> proxy = new ArrayListProxy<GuiButton>();
-                            proxy.addAll(controlList);
-                            for (GuiButton button : proxy) {
-                                if (button.id == id2 || button.id == id3) {
-                                    if (enumWorldTypes[generator] == EnumWorldTypes.ALPHA) button.enabled = false;
-                                    else button.enabled = true;
-                                }
-                            }
-                        } catch (IllegalAccessException e) {
-                            throw new RuntimeException("dafuq? failed to get buttons?", e);
-                        }
                     }
 
                     if (guibutton.id == id2) {
@@ -115,6 +110,24 @@ public class mod_WorldTypes extends BaseMod {
                     if (guibutton.id == id3) {
                         singleBiome = (singleBiome + 1) % biomes.toArray().length;
                         guibutton.displayString = biomes.get(singleBiome).biomeName;
+                    }
+
+                    try {
+                        List<GuiButton> controlList = (List<GuiButton>) Reflection.findField(GuiScreen.class, new String[]{"e", "controlList"}).get(OverrideAPI.getMinecraftInstance().currentScreen);
+                        List<GuiButton> proxy = new ArrayListProxy<GuiButton>();
+                        proxy.addAll(controlList);
+                        for (GuiButton button : proxy) {
+                            if (button.id == id2 || button.id == id3) {
+                                if (enumWorldTypes[generator] == EnumWorldTypes.ALPHA) button.enabled = false;
+                                else button.enabled = true;
+                                if (button.id == id3) {
+                                    if (enumBiomeGenerators[biomeGenerator] == EnumBiomeGenerators.SINGLE) button.enabled = true;
+                                    else button.enabled = false;
+                                }
+                            }
+                        }
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException("dafuq? failed to get buttons?", e);
                     }
                 }
             }
