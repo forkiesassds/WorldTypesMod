@@ -7,10 +7,10 @@ import me.icanttellyou.mods.worldtypes.proxy.gui.GuiCreateWorldProxy;
 import me.icanttellyou.mods.worldtypes.proxy.gui.GuiSelectWorldProxy;
 import me.icanttellyou.mods.worldtypes.proxy.world.SaveConverterMcRegionProxy;
 import net.minecraft.client.Minecraft;
-import overrideapi.OverrideAPI;
-import overrideapi.proxy.ArrayListProxy;
-import overrideapi.utils.Reflection;
-import overrideapi.utils.gui.ButtonHandler;
+import net.minecraft.src.overrideapi.OverrideAPI;
+import net.minecraft.src.overrideapi.proxy.ArrayListProxy;
+import net.minecraft.src.overrideapi.utils.Reflection;
+import net.minecraft.src.overrideapi.utils.gui.ButtonHandler;
 
 import java.io.File;
 import java.lang.reflect.Field;
